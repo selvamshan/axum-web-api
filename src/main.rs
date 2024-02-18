@@ -18,7 +18,7 @@ async fn main() -> Result<()> {
         .init();
 
     let app = Router::new()
-        .merge(web::routes_hello::routes())
+        .merge(web::routes())
         .fallback(web::routes_static::serve_dir());
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
