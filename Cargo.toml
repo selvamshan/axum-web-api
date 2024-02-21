@@ -16,10 +16,17 @@ async-trait = "0.1"
 
 # -- Web
 axum = {version = "0.7", features = ["macros"]}
-tower-http = { version = "0.5", features = ["fs"] }
+axum-extra = { version = "0.9.2", features = ["typed-header"] }
+headers = "0.4.0"
+tower-http = { version = "0.5", features = ["fs", "cors"] }
 
 
 # -- Tracing
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# -- Json
 serde = { version = "1.0.196", features = ["derive"] }
+validator = { version = "0.16.1", features = ["derive"] }
+serde_json = "1.0.114"
+
