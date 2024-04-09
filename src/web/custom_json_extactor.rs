@@ -3,7 +3,7 @@ use axum::{async_trait, extract::FromRequest, Json};
 use axum::http::{Request, StatusCode};
 use axum::response::{Response, IntoResponse};
 use axum::body::{Body, Bytes};
-use validator::{Validate, ValidationErrors};
+use validator::Validate;
 
 
 #[derive(Deserialize, Validate, Debug)]

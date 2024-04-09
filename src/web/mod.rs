@@ -1,6 +1,7 @@
 
 use axum::routing::{get, post};
 use axum::{middleware, Extension, Router};
+use sea_orm::DatabaseConnection;
 
 mod routes_hello;
 pub mod routes_static;
@@ -16,6 +17,8 @@ mod set_middleware_custom_header;
 mod return_json;
 mod validate_data;
 mod custom_json_extactor;
+mod create_task;
+mod get_tasks;
 
 use routes_hello::hello_handler;
 use mirror_body_strings::mirro_body_strings;
@@ -30,6 +33,8 @@ use set_middleware_custom_header::set_middleware_custom_header;
 use  return_json::return_json;
 use validate_data::validate_data;
 use custom_json_extactor::custom_json_extactor;
+use create_task::create_task;
+use get_tasks::{get_one_task,get_all_tasks};
 
 #[derive(Clone)]
 pub struct SharedData {
@@ -37,7 +42,7 @@ pub struct SharedData {
 }
 
 
-pub fn routes() -> Router {
+pub fn routes(database:DatabaseConnection) -> Router {
      
      let shared_data = SharedData {
         message: "Hello from shared data".to_string(),
@@ -58,5 +63,9 @@ pub fn routes() -> Router {
     .route("/return_json", get(return_json))
     .route("/validate_data", post(validate_data))
     .route("/custom_json_extractor", post(custom_json_extactor))
+    .route("/task", post(create_task))
+    .route("/task", get(get_all_tasks))
+    .route("/task/:task_id", get(get_one_task))
+    .layer(Extension(database))
     
 }
