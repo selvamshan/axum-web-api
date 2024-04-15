@@ -1,5 +1,5 @@
 
-use axum::routing::{get, post};
+use axum::routing::{delete, get, patch, post, put};
 use axum::{middleware, Extension, Router};
 use sea_orm::DatabaseConnection;
 
@@ -19,6 +19,11 @@ mod validate_data;
 mod custom_json_extactor;
 mod create_task;
 mod get_tasks;
+mod update_task;
+mod partial_update_task;
+mod delete_task;
+mod users;
+mod guard;
 
 use routes_hello::hello_handler;
 use mirror_body_strings::mirro_body_strings;
@@ -35,6 +40,11 @@ use validate_data::validate_data;
 use custom_json_extactor::custom_json_extactor;
 use create_task::create_task;
 use get_tasks::{get_one_task,get_all_tasks};
+use update_task::atomic_update;
+use partial_update_task::partial_update;
+use delete_task::delete_task;
+use users::{create_users, login, logout};
+use guard::guard;
 
 #[derive(Clone)]
 pub struct SharedData {
@@ -62,10 +72,17 @@ pub fn routes(database:DatabaseConnection) -> Router {
     .layer(Extension(shared_data))
     .route("/return_json", get(return_json))
     .route("/validate_data", post(validate_data))
-    .route("/custom_json_extractor", post(custom_json_extactor))
+    .route("/custom_json_extractor", post(custom_json_extactor)) 
     .route("/task", post(create_task))
     .route("/task", get(get_all_tasks))
     .route("/task/:task_id", get(get_one_task))
+    .route("/task/:task_id", put(atomic_update))
+    .route("/task/:task_id", patch(partial_update))
+    .route("/task/:task_id", delete(delete_task))
+    .route("/users/logout", post(logout))
+    .route_layer(middleware::from_fn(guard))
+    .route("/users/login", post(login))
+    .route("/users", post(create_users))    
     .layer(Extension(database))
     
 }
