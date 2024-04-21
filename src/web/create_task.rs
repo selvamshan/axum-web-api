@@ -1,10 +1,11 @@
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::Extension;
 use axum::Json;
 use serde::Deserialize;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set};
 
-use crate::database::tasks;
+use crate::database::{self, tasks};
 use crate::database::users::Model;
 
 #[derive(Deserialize)]
@@ -15,7 +16,7 @@ pub struct TaskCreate {
 }
 
 pub async fn create_task(
-    Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Extension(user): Extension<Model>,   
     Json(task): Json<TaskCreate>,    
 ) -> Result<(), StatusCode> {

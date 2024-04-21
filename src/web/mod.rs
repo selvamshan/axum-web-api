@@ -1,4 +1,5 @@
 
+use axum::extract::FromRef;
 use axum::routing::{delete, get, patch, post, put};
 use axum::{middleware, Extension, Router};
 use sea_orm::DatabaseConnection;
@@ -51,12 +52,18 @@ pub struct SharedData {
     message: String,    
 }
 
+#[derive(Clone, FromRef)]
+pub struct AppState {
+    pub database: DatabaseConnection,
+}
+
 
 pub fn routes(database:DatabaseConnection) -> Router {
      
      let shared_data = SharedData {
         message: "Hello from shared data".to_string(),
      };
+     let app_state = AppState{ database };
 
     Router::new()
     .route("/middleware_custom_header", get(middleware_custom_header))
@@ -69,7 +76,7 @@ pub fn routes(database:DatabaseConnection) -> Router {
     .route("/mirror_user_agent", get(mirror_user_agent))
     .route("/mirror_custom_header", get(mirror_custom_header))
     .route("/middleware_message", get(middleware_message))
-    .layer(Extension(shared_data))
+    .with_state(shared_data)
     .route("/return_json", get(return_json))
     .route("/validate_data", post(validate_data))
     .route("/custom_json_extractor", post(custom_json_extactor)) 
@@ -80,9 +87,9 @@ pub fn routes(database:DatabaseConnection) -> Router {
     .route("/task/:task_id", patch(partial_update))
     .route("/task/:task_id", delete(delete_task))
     .route("/users/logout", post(logout))
-    .route_layer(middleware::from_fn(guard))
+    .route_layer(middleware::from_fn_with_state(app_state.clone(), guard))
     .route("/users/login", post(login))
     .route("/users", post(create_users))    
-    .layer(Extension(database))
+    .with_state(app_state)
     
 }

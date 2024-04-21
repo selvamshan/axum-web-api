@@ -76,6 +76,5 @@ where
 // }
 
 pub async fn custom_json_extactor(user:RequestUser) {
-  tracing::debug!(?user, "handler received body");
-  
+  tracing::debug!(?user, "handler received body");  
 }

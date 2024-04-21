@@ -1,4 +1,4 @@
-use axum::{extract::{Path, Query}, http::StatusCode, Extension};
+use axum::{extract::{Path, Query, State}, http::StatusCode};
 use sea_orm::{ IntoActiveModel, Set};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::Deserialize;
@@ -12,7 +12,7 @@ pub struct QueryParams{
 
 pub async fn delete_task(
     Path(task_id): Path<i32>,
-    Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Query(query_param): Query<QueryParams>
 ) -> Result<(), StatusCode> {
         // let task = if let Some(task) = Task::find_by_id(task_id)

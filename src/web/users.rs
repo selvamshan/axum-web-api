@@ -1,10 +1,11 @@
 use axum::{http::StatusCode, Extension, Json};
-
+use axum::extract::State;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 
 use crate::database::users::{Model, Entity as Users};
 use crate::database::users;
+use crate::utils::jwt::create_jwt;
 
 
 #[derive(Deserialize)]
@@ -22,13 +23,14 @@ pub struct ResponseUser {
 }
 
 pub async fn create_users(
-    Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Json(request_user):Json<RequestUser>,   
 ) -> Result<Json<ResponseUser>, StatusCode> {
+    let token = create_jwt()?;
     let new_user = users::ActiveModel {  
         username: Set(request_user.username),
         password: Set(hash_password(request_user.password)?),    
-        token: Set(Some("xe45343xrds".to_owned())),
+        token: Set(Some(token)),
         ..Default::default()
     }.save(&database)
     .await
@@ -44,9 +46,9 @@ pub async fn create_users(
 
 
 pub async fn login(
-    Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Json(request_user):Json<RequestUser>,  
-) -> Result<Json<ResponseUser>, StatusCode> {
+) -> Result<Json<ResponseUser>, StatusCode> {    
     let db_user = Users::find()
         .filter(users::Column::Username.eq(&request_user.username))
         .one(&database)
@@ -57,7 +59,7 @@ pub async fn login(
         if !verify_passord(request_user.password, &db_user.password)? {
             return Err(StatusCode::UNAUTHORIZED);
         }
-        let new_token = "1233456abc".to_owned();
+        let new_token = create_jwt()?;
         let mut user =  db_user.into_active_model();
         user.token = Set(Some(new_token));
         let saved_user = user.save(&database)
@@ -78,7 +80,7 @@ pub async fn login(
 
 
 pub async fn logout(
-    Extension(database): Extension<DatabaseConnection>,    
+    State(database): State<DatabaseConnection>,    
     Extension(user): Extension<Model>
 ) -> Result<(), StatusCode> {
     let mut user = user.into_active_model();
